@@ -116,19 +116,19 @@ function App() {
 
   const hashingCeoSigned = useMemo(() => {
     return md5(CeoFio);
-  }, [CeoSigned]);
+  }, [CeoFio]);
 
   const hashingDeputyCEOSigned = useMemo(() => {
     return md5(fioDeputyCEO);
-  }, [DeputyCEOSigned]);
+  }, [fioDeputyCEO]);
 
   const hashingIBSigned = useMemo(() => {
     return md5(fioIB);
-  }, [IBSigned]);
+  }, [fioIB]);
 
   const hashingChairmanOfTheBoardSigned = useMemo(() => {
     return md5(fioChairmanOfTheBoard);
-  }, [ChairmanOfTheBoardSigned]);
+  }, [fioChairmanOfTheBoard]);
 
   const [showHashingCeoSigned, setHashingCeoSigned] = useState(false);
 
