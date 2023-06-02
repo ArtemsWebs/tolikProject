@@ -1,7 +1,15 @@
 import { Autocomplete, Box, Button, Modal, styled, TextField, Typography } from '@mui/material';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { DefaultOption, UserInfo } from '../types/SharedTypes';
-import { costActive, costActiveName, dangerousCodes, vulnerabilityCodeOne, vulnerabilityCodeTwo } from '../utils/const';
+import {
+  costActive,
+  costActiveName,
+  dangerousCodes,
+  dangerousVariabilityName,
+  dangerousVariabilityStatus,
+  vulnerabilityCodeOne,
+  vulnerabilityCodeTwo,
+} from '../utils/const';
 import { getOptionForArray } from '../utils/utils';
 
 interface AddDangerousModalProps {
@@ -11,6 +19,11 @@ interface AddDangerousModalProps {
 }
 
 const costActiveOptions = getOptionForArray<typeof costActive, typeof costActiveName>(costActive, costActiveName);
+
+const damageProbabilityOptions = getOptionForArray<typeof dangerousVariabilityStatus, typeof dangerousVariabilityName>(
+  dangerousVariabilityStatus,
+  dangerousVariabilityName,
+);
 
 const codeDangerousOptions = getOptionForArray<typeof dangerousCodes, typeof dangerousCodes>(
   dangerousCodes,
@@ -22,10 +35,12 @@ const AddDangerousModal = ({ open, handleClose, onSubmit }: AddDangerousModalPro
 
   //Ценность актива
   const [assetVulnerability, setAssetVulnerability] = useState<DefaultOption | null>(null);
-
+  //код уязвимости
   const [vulnerabilityCode, setVulnerabilityCode] = useState<DefaultOption | null>(null);
-
+  //код угрозы
   const [codeDangerous, setCodeDangerous] = useState<DefaultOption | null>(null);
+  //вероятность ущерба
+  const [damageProbability, setDamagePropability] = useState<DefaultOption | null>(null);
 
   const actualVulnerabilityOptions = useMemo(() => {
     if (codeDangerous?.value === dangerousCodes[0])
@@ -37,7 +52,11 @@ const AddDangerousModal = ({ open, handleClose, onSubmit }: AddDangerousModalPro
       vulnerabilityCodeTwo,
       vulnerabilityCodeTwo,
     );
-  }, []);
+  }, [codeDangerous]);
+
+  useEffect(() => {
+    if (codeDangerous?.value) setVulnerabilityCode(actualVulnerabilityOptions[0]);
+  }, [codeDangerous, actualVulnerabilityOptions]);
 
   const [employ, setEmploy] = useState('');
   return (
@@ -59,18 +78,27 @@ const AddDangerousModal = ({ open, handleClose, onSubmit }: AddDangerousModalPro
             renderInput={(props) => <TextField {...props} label="Ценность актива" />}
           />
           <Autocomplete
-            value={vulnerabilityCode}
-            options={actualVulnerabilityOptions}
-            getOptionLabel={(value) => value?.label}
-            onChange={(_, value) => setVulnerabilityCode(value)}
-            renderInput={(props) => <TextField {...props} label="Код уязвимости " />}
-          />
-          <Autocomplete
             value={codeDangerous}
             options={codeDangerousOptions}
             getOptionLabel={(value) => value?.label}
             onChange={(_, value) => setCodeDangerous(value)}
             renderInput={(props) => <TextField {...props} label="Код угрозы" />}
+          />
+          {codeDangerous && (
+            <Autocomplete
+              value={vulnerabilityCode}
+              options={actualVulnerabilityOptions}
+              getOptionLabel={(value) => value?.label}
+              onChange={(_, value) => setVulnerabilityCode(value)}
+              renderInput={(props) => <TextField {...props} label="Код уязвимости " />}
+            />
+          )}
+          <Autocomplete
+            value={damageProbability}
+            options={damageProbabilityOptions}
+            getOptionLabel={(value) => value?.label}
+            onChange={(_, value) => setDamagePropability(value)}
+            renderInput={(props) => <TextField {...props} label="Вероятность ущерба " />}
           />
           <TextField label="Фио ответственного" value={employ} onChange={(e) => setEmploy(e.target.value)} />
         </FormBlock>
@@ -83,8 +111,11 @@ const AddDangerousModal = ({ open, handleClose, onSubmit }: AddDangerousModalPro
             onClick={() => {
               onSubmit({
                 activeName,
-                activeCost: assetVulnerability?.label ?? '--',
+                activeCost: assetVulnerability,
+                vulnerabilityCode: vulnerabilityCode?.value ?? '--',
                 employerFio: employ,
+                dangerCode: codeDangerous?.value ?? '--',
+                damageProbability: damageProbability,
               });
               handleClose();
             }}

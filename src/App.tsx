@@ -10,6 +10,7 @@ import { Box, Button, styled, TextField, ToggleButton, ToggleButtonGroup, Typogr
 import { DatePicker } from '@mui/x-date-pickers';
 import AddDangerousModal from './components/AddDangerousModal';
 import { UserInfo } from './types/SharedTypes';
+import { dangerousCodes, vulnerabilityCodeOne } from './utils/const';
 
 const rows: GridRowsProp = [
   {
@@ -37,6 +38,50 @@ const columns: GridColDef[] = [
   { field: 'costProcessing', headerName: 'Затраты на обработку', width: 150 },
   { field: 'assignee', headerName: 'Ответственный', width: 150 },
 ];
+
+const getCostStatus = (
+  dangerousCode: string,
+  vulnerabilityCode: string,
+  activeCost?: string,
+  damageProbability?: string,
+) => {
+  if (
+    dangerousCode === dangerousCodes[0] &&
+    vulnerabilityCode === vulnerabilityCodeOne[0] &&
+    activeCost === 'critical' &&
+    damageProbability === 'high'
+  )
+    return 'Недопустимо';
+  else if (
+    dangerousCode === dangerousCodes[0] &&
+    vulnerabilityCode === vulnerabilityCodeOne[0] &&
+    activeCost === 'high' &&
+    damageProbability === 'high'
+  )
+    return 'Недопустимо';
+  else if (
+    dangerousCode === dangerousCodes[0] &&
+    vulnerabilityCode === vulnerabilityCodeOne[0] &&
+    activeCost === 'medium' &&
+    damageProbability === 'high'
+  )
+    return 'Критично';
+  else if (
+    dangerousCode === dangerousCodes[0] &&
+    vulnerabilityCode === vulnerabilityCodeOne[0] &&
+    activeCost === 'smallMedium' &&
+    damageProbability === 'high'
+  )
+    return 'Существенно';
+  else if (
+    dangerousCode === dangerousCodes[0] &&
+    vulnerabilityCode === vulnerabilityCodeOne[0] &&
+    activeCost === 'small' &&
+    damageProbability === 'high'
+  )
+    return 'Приемлемо';
+  return 'Неопределенно';
+};
 
 function App() {
   const [mode, setMode] = useState<'table' | 'form'>('form');
@@ -70,24 +115,28 @@ function App() {
   const [rows, setRows] = useState<GridRowsProp>([]);
 
   const hashingCeoSigned = useMemo(() => {
-    if (!!CeoSigned) return undefined;
-    return md5(CeoSigned);
+    return md5(CeoFio);
   }, [CeoSigned]);
 
   const hashingDeputyCEOSigned = useMemo(() => {
-    if (!!DeputyCEOSigned) return undefined;
-    return md5(DeputyCEOSigned);
+    return md5(fioDeputyCEO);
   }, [DeputyCEOSigned]);
 
   const hashingIBSigned = useMemo(() => {
-    if (!!IBSigned) return undefined;
-    return md5(IBSigned);
+    return md5(fioIB);
   }, [IBSigned]);
 
   const hashingChairmanOfTheBoardSigned = useMemo(() => {
-    if (!!ChairmanOfTheBoardSigned) return undefined;
-    return md5(ChairmanOfTheBoardSigned);
+    return md5(fioChairmanOfTheBoard);
   }, [ChairmanOfTheBoardSigned]);
+
+  const [showHashingCeoSigned, setHashingCeoSigned] = useState(false);
+
+  const [showHashingDeputyCEOSigned, setHashingDeputyCEOSigned] = useState(false);
+
+  const [showHashingChairmanOfTheBoardSigned, setHashingChairmanOfTheBoardSigned] = useState(false);
+
+  const [showHashingIBSigned, setHashingIBSigned] = useState(false);
 
   const handleClose = useCallback(() => setShowModal(false), [setShowModal]);
 
@@ -96,14 +145,19 @@ function App() {
       ...prevState,
       {
         id: prevState.length,
-        codeDanger: faker.string.uuid(),
-        codeStopable: faker.string.uuid(),
-        active: userInfo.activeName,
-        costActive: userInfo.activeCost,
-        costThreats: '213',
-        realiseVariant: 'Низкая',
+        codeDanger: userInfo.dangerCode ?? '--',
+        codeStopable: userInfo.vulnerabilityCode ?? '--',
+        active: userInfo.activeName ?? '--',
+        costActive: userInfo.activeCost?.label ?? '--',
+        costThreats: getCostStatus(
+          userInfo.dangerCode,
+          userInfo.vulnerabilityCode,
+          userInfo.activeCost?.value,
+          userInfo.damageProbability?.value,
+        ),
+        realiseVariant: userInfo.damageProbability?.label,
         processingMethod: 'Автоматический',
-        costProcessing: 'Высокие',
+        costProcessing: 'Экстренный запуск дублирующей ноды',
         assignee: userInfo.employerFio,
       },
     ]);
@@ -148,23 +202,11 @@ function App() {
               />
 
               <TextField
-                label="Подпись руководителя организации"
-                value={CeoSigned}
-                onChange={(e) => setCeoSigned(e.target.value)}
-              />
-
-              <TextField
                 label="Должность руководителя отдела ИБ"
                 value={headIBPosition}
                 onChange={(e) => setHeadIBPosition(e.target.value)}
               />
               <TextField label="ФИО руководителя отдела ИБ" value={fioIB} onChange={(e) => setFioIB(e.target.value)} />
-
-              <TextField
-                label="Подпись руководителя отдела ИБ"
-                value={IBSigned}
-                onChange={(e) => setIBSigned(e.target.value)}
-              />
 
               <TextField
                 label="Должность заместителя руководителя организации"
@@ -176,11 +218,6 @@ function App() {
                 value={fioDeputyCEO}
                 onChange={(e) => setFioDeputyCEO(e.target.value)}
               />
-              <TextField
-                label="Подпись заместителя руководителя организации"
-                value={DeputyCEOSigned}
-                onChange={(e) => setDeputyCEOSigned(e.target.value)}
-              />
 
               <TextField
                 label="Должность председателя совета директоров"
@@ -191,12 +228,6 @@ function App() {
                 label="ФИО председателя совета директоров"
                 value={fioChairmanOfTheBoard}
                 onChange={(e) => setFioChairmanOfTheBoard(e.target.value)}
-              />
-
-              <TextField
-                label="Подпись председателя совета директоров"
-                value={ChairmanOfTheBoardSigned}
-                onChange={(e) => setChairmanOfTheBoardSigned(e.target.value)}
               />
 
               <DatePicker value={date} onChange={(value) => setDate(value)} label={'Дата подписания соглашения'} />
@@ -226,12 +257,12 @@ function App() {
               <Typography>{orgName}</Typography>
               <Typography>{CeoFio}</Typography>
               {date && <Typography>{dateFns.format(date, 'dd.MM.yyyy')}</Typography>}
-              {CeoFio ? (
+              {showHashingCeoSigned ? (
                 <Typography>{`Подпись: ${hashingCeoSigned}`}</Typography>
               ) : (
                 <Button
                   onClick={() => {
-                    setCeoSigned(CeoFio);
+                    setHashingCeoSigned(true);
                   }}
                 >
                   Подписать
@@ -255,12 +286,12 @@ function App() {
             <TypographyFooter>
               <Box sx={{ paddingBottom: '15px' }} alignItems="center" display="flex">
                 <Typography>{`${headIBPosition}: ${fioIB}`}</Typography>
-                {fioIB ? (
+                {showHashingIBSigned ? (
                   <Typography>{`Подпись: ${hashingIBSigned}`}</Typography>
                 ) : (
                   <Button
                     onClick={() => {
-                      setIBSigned(fioIB);
+                      setHashingIBSigned(true);
                     }}
                   >
                     Подписать
@@ -270,12 +301,12 @@ function App() {
               <Typography>Согласовано:</Typography>
 
               <Typography sx={{ paddingBottom: '5px' }}>{`${deputyCEOPosition}: ${fioDeputyCEO}`}</Typography>
-              {hashingDeputyCEOSigned ? (
+              {showHashingDeputyCEOSigned ? (
                 <Typography>{`Подпись: ${hashingDeputyCEOSigned}`}</Typography>
               ) : (
                 <Button
                   onClick={() => {
-                    setDeputyCEOSigned(fioDeputyCEO);
+                    setHashingDeputyCEOSigned(true);
                   }}
                 >
                   Подписать
@@ -285,13 +316,12 @@ function App() {
               <Typography sx={{ paddingBottom: '5px' }}>
                 {`${chairmanOfTheBoardPosition}: ${fioChairmanOfTheBoard}`}
               </Typography>
-              <Typography>{`Подпись: ${hashingChairmanOfTheBoardSigned}`}</Typography>
-              {fioChairmanOfTheBoard ? (
+              {showHashingChairmanOfTheBoardSigned ? (
                 <Typography>{`Подпись: ${hashingChairmanOfTheBoardSigned}`}</Typography>
               ) : (
                 <Button
                   onClick={() => {
-                    setChairmanOfTheBoardSigned(fioChairmanOfTheBoard);
+                    setHashingChairmanOfTheBoardSigned(true);
                   }}
                 >
                   Подписать
@@ -329,6 +359,7 @@ const TableTitle = styled(Box)`
 
 const StyledDataGrid = styled(DataGrid)`
   background-color: white;
+  min-height: 192px;
 `;
 
 const StyledButton = styled(Button)`

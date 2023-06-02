@@ -5,6 +5,12 @@ export type DefaultOption = {
 
 export type UserInfo = {
   activeName: string;
-  activeCost: string;
+  activeCost: DefaultOption | null;
   employerFio: string;
+  //код угрозы
+  dangerCode: string;
+  //код уязвимости
+  vulnerabilityCode: string;
+  //вероятность ущерба
+  damageProbability: DefaultOption | null;
 };
