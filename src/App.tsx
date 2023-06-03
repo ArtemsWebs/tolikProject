@@ -32,6 +32,7 @@ const columns: GridColDef[] = [
   { field: 'codeStopable', headerName: 'Код уязвимости', width: 150 },
   { field: 'active', headerName: 'Актив', width: 150 },
   { field: 'costActive', headerName: 'Ценность Актива', width: 150 },
+  { field: 'allowDowntime', headerName: 'Допустимое время простоя', width: 150 },
   { field: 'costThreats', headerName: 'Оценка ущерба', width: 150 },
   { field: 'realiseVariant', headerName: 'Вероятность реализации', width: 150 },
   { field: 'processingMethod', headerName: 'Способ обработки ', width: 150 },
